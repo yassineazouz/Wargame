@@ -21,7 +21,7 @@ public class GameBoard extends Pane {
             for (int col = 0; col < COLS; col++) {
                 // Récupérer le type de terrain depuis la grille
                 TerrainType terrainType = terrainGrid[row][col];
-                HexagonTile hex = new HexagonTile(terrainType);
+                HexagonTile hex = new HexagonTile(terrainType,row , col);
 
                 // Calcul position : décalage sur les lignes impaires
                 double x = HEX_SIZE * Math.sqrt(3) * (col + 0.5 * (row % 2));

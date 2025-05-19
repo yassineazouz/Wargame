@@ -42,4 +42,15 @@ public class Player {
     public boolean isAI() {
         return isAI;
     }
+    public boolean hasAliveUnits() {
+        for (Unit u : units) {
+            if (u.isAlive()) return true;
+        }
+        return false;
+    }
+
+    public void removeDeadUnits() {
+        units.removeIf(unit -> !unit.isAlive());
+    }
+
 }

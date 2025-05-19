@@ -79,5 +79,7 @@ public class Plateau extends Pane {
         }
     }
 
-
+    public int getRows() {
+        return rows;
+    }
 }

@@ -68,5 +68,9 @@ public class HexagonTile extends StackPane {
     public int getCol() {
         return col;
     }
+    @Override
+    public String toString() {
+        return "Hex[" + row + "," + col + "] - " + terrainType + (unit != null ? " with " + unit.getName() : "");
+    }
 
 }

@@ -74,4 +74,12 @@ public class Unit {
         return name + " [" + type + "] HP:" + currentHealth;
     }
 
+    public void setCurrentMovement(int currentMovement) {
+        this.currentMovement = currentMovement;
+    }
+
+    public boolean canAct() {
+        return isAlive() && currentMovement > 0;
+    }
+
 }
