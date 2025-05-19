@@ -60,7 +60,11 @@ public class GameMenu {
         // Créer la scène en plein écran
         Scene scene = new Scene(root);
         stage.setScene(scene);
-        stage.setFullScreen(true);  // Passer en plein écran
+        stage.setWidth(1280);
+        stage.setHeight(720);
+        stage.setFullScreen(false); // fenêtré pour mieux voir
+        stage.show();
+         // Passer en plein écran
 
         return scene;
     }

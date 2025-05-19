@@ -1,7 +1,4 @@
-
 package tn.isty.wargame.model;
-
-
 import java.util.List;
 
 public class GameState {
@@ -15,31 +12,25 @@ public class GameState {
         this.currentPlayerIndex = 0;
     }
 
-    // Récupère le joueur qui doit jouer
     public Player getCurrentPlayer() {
         return players.get(currentPlayerIndex);
     }
 
-    // Passe au joueur suivant
     public void switchToNextPlayer() {
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     }
 
-    //  Initialise la partie (placement des unités, etc.)
     public void initializeGame() {
-        // TODO : positionner les unités sur le plateau
-        // Exemple : board.placeUnit(...), player.addUnit(...)
+        // Prévu dans Main.java
     }
 
     public Plateau getBoard() {
         return board;
     }
 
-    // À implémenter ensuite (on les prépare)
     public boolean canMove(Unit unit, HexagonTile to) {
         if (unit == null || to == null) return false;
-        if (!unit.isAlive()) return false;
-        if (to.getUnit() != null) return false;
+        if (!unit.isAlive() || to.getUnit() != null) return false;
 
         HexagonTile from = unit.getPosition();
         if (from == null) return false;
@@ -48,33 +39,80 @@ public class GameState {
         return distance <= unit.getCurrentMovement();
     }
 
-
     public void moveUnit(Unit unit, HexagonTile to) {
-        // TODO : déplacer l’unité et décrémenter ses points de déplacement
+        if (!canMove(unit, to)) return;
+
+        HexagonTile from = unit.getPosition();
+        from.setUnit(null);
+
+        to.setUnit(unit);
+        unit.setPosition(to);
+
+        unit.resetMovement(); // Reset movement if needed
     }
 
     public boolean canAttack(Unit attacker, Unit defender) {
-        // TODO : vérifier portée, camps opposés, état vivant
-        return true;
+        if (attacker == null || defender == null) return false;
+        if (!attacker.isAlive() || !defender.isAlive()) return false;
+        if (attacker.getOwner() == defender.getOwner()) return false;
+
+        int distance = calculerDistanceHex(attacker.getPosition(), defender.getPosition());
+        return distance <= attacker.getVisionRange(); // attaque à portée
     }
 
     public void resolveCombat(Unit attacker, Unit defender) {
-        // TODO : appliquer le calcul des dégâts avec bonus de terrain et hasard
+        int baseDamage = attacker.getAttack() - defender.getDefense();
+        baseDamage = Math.max(1, baseDamage);
+
+        TerrainType terrain = defender.getPosition().getTerrainType();
+        int terrainBonus = 0;
+        switch (terrain) {
+            case FORET:
+            terrainBonus = 1;
+            break;
+        case COLLINE:
+            terrainBonus = 2;
+            break;
+        case MONTAGNE:
+            terrainBonus = 3;
+            break;
+        case FORTERESSE:
+            terrainBonus = 4;
+            break;
+        default:
+            terrainBonus = 0;
+}
+
+
+        baseDamage -= terrainBonus;
+        baseDamage = Math.max(1, baseDamage);
+
+        int randomBonus = (int) (Math.random() * 5) - 2; // -2 à +2
+        int totalDamage = Math.max(1, baseDamage + randomBonus);
+
+        defender.receiveDamage(totalDamage);
+
+        System.out.println("🗡 " + attacker.getName() + " attaque " + defender.getName());
+        System.out.println("💥 Dégâts infligés : " + totalDamage + " (base: " + baseDamage + ", terrain: -" + terrainBonus + ", hasard: " + randomBonus + ")");
+        System.out.println("❤️ PV restants de " + defender.getName() + " : " + defender.getHealth());
+
+        if (!defender.isAlive()) {
+            HexagonTile tile = defender.getPosition();
+            tile.setUnit(null);
+            defender.setPosition(null);
+            System.out.println("☠ " + defender.getName() + " est mort !");
+        }
     }
 
     public boolean isGameOver() {
-        // TODO : vérifier conditions de victoire
         return false;
     }
 
     public Player getWinner() {
-        // TODO : retourner le joueur vainqueur s’il y en a un
         return null;
     }
 
     private int calculerDistanceHex(HexagonTile a, HexagonTile b) {
-        // ⚠️ méthode simplifiée en mode grille : à améliorer plus tard pour grille hexagonale
         return Math.abs(a.getRow() - b.getRow()) + Math.abs(a.getCol() - b.getCol());
     }
-
 }

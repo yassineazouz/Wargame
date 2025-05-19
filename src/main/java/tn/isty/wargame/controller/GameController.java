@@ -44,7 +44,12 @@ public class GameController {
 
     public void attack(Unit attacker, Unit defender) {
         if (gameState.canAttack(attacker, defender)) {
-            gameState.resolveCombat(attacker, defender);
+            HexagonTile targetTile = defender.getPosition();
+            if (targetTile != null) {
+                targetTile.playAttackAnimation(); // 🔴 affichage attaque
+            }
+
+            gameState.resolveCombat(attacker, defender); // logique
             System.out.println(attacker.getName() + " attaque " + defender.getName());
         } else {
             System.out.println("❌ Attaque non autorisée");
