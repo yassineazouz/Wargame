@@ -7,9 +7,26 @@ import javafx.scene.shape.Polygon;
 public class HexagonTile extends StackPane {
     private static final double SIZE = 40;
     private TerrainType terrainType;
+    private Unit unit;
+    private int row;
+    private int col;
 
-    public HexagonTile(TerrainType type) {
+    public Unit getUnit() {
+        return unit;
+    }
+
+    public void setUnit(Unit unit) {
+        this.unit = unit;
+    }
+
+    public TerrainType getTerrainType() {
+        return terrainType;
+    }
+
+    public HexagonTile(TerrainType type, int row, int col) {
         this.terrainType = type;
+        this.row = row;
+        this.col = col;
 
         // Création de l'hexagone
         Polygon hex = new Polygon();
@@ -43,4 +60,13 @@ public class HexagonTile extends StackPane {
                 return Color.GRAY;
         }
     }
+
+    public int getRow() {
+        return row;
+    }
+
+    public int getCol() {
+        return col;
+    }
+
 }
