@@ -3,19 +3,24 @@ package tn.isty.wargame.model;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
+import java.io.Serializable;
 import javafx.animation.FillTransition;
 import javafx.util.Duration;
 import javafx.scene.shape.Shape;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import tn.isty.wargame.controller.GameController;
 
-public class HexagonTile extends StackPane {
+public class HexagonTile extends StackPane implements Serializable {
+    private static final long serialVersionUID = 1L;
     private static final double SIZE = 40;
     private TerrainType terrainType;
     private Unit unit;
     private int row;
     private int col;
-    private Label unitLabel = new Label();
+
+    // Ne pas sérialiser les éléments JavaFX UI
+    private transient Label unitLabel = new Label();
 
     private static Unit selectedUnit = null;
     private static GameState sharedGameState = null;
@@ -30,6 +35,7 @@ public class HexagonTile extends StackPane {
 
     public void setUnit(Unit unit) {
         this.unit = unit;
+        if (unit != null) unit.setPosition(this);
         updateDisplay();
     }
 
@@ -42,7 +48,6 @@ public class HexagonTile extends StackPane {
         this.row = row;
         this.col = col;
 
-        // Dessin de l'hexagone
         Polygon hex = new Polygon();
         for (int i = 0; i < 6; i++) {
             double angle = Math.toRadians(60 * i - 30);
@@ -58,72 +63,50 @@ public class HexagonTile extends StackPane {
         this.getChildren().add(hex);
 
         unitLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: black;");
-        unitLabel.setMouseTransparent(true); // 👈 ligne à ajouter pour que les clics passent au fond
+        unitLabel.setMouseTransparent(true);
         this.getChildren().add(unitLabel);
 
         updateDisplay();
 
         this.setOnMouseClicked(event -> {
-        System.out.println("🖱️ Clic détecté sur tuile [" + row + "," + col + "]");
+            if (sharedGameState == null) {
+                System.out.println("❌ sharedGameState est null");
+                return;
+            }
 
-        if (sharedGameState == null) {
-            System.out.println("❌ sharedGameState est null");
-            return;
-        }
+            Player current = sharedGameState.getCurrentPlayer();
+            GameController controller = new GameController(sharedGameState);
 
-        if (unit != null) {
-            System.out.println("👉 Tuile occupée par " + unit.getName() + " (" + unit.getOwner().getName() + ")");
-        } else {
-            System.out.println("👉 Tuile vide");
-        }
+            if (unit != null && unit.getOwner().equals(current)) {
+                selectedUnit = unit;
+                System.out.println("✅ Sélection : " + unit.getName());
 
-        Player current = sharedGameState.getCurrentPlayer();
-        System.out.println("🔁 Joueur courant : " + current.getName());
-
-        if (unit != null && unit.getOwner().equals(current)) {
-            selectedUnit = unit;
-            System.out.println("✅ Sélection : " + unit.getName());
-        } else if (selectedUnit != null && unit != null && !unit.getOwner().equals(current)) {
-            System.out.println("⚔️ Candidat pour attaque : " + unit.getName());
-            if (sharedGameState.canAttack(selectedUnit, unit)) {
-                System.out.println("💥 Attaque déclenchée !");
-                sharedGameState.resolveCombat(selectedUnit, unit);
-                this.playAttackAnimation();
+            } else if (selectedUnit != null && unit != null && !unit.getOwner().equals(current)) {
+                System.out.println("⚔️ Attaque de " + selectedUnit.getName() + " sur " + unit.getName());
+                controller.attack(selectedUnit, unit);
                 selectedUnit = null;
-            } else {
-                System.out.println("❌ Attaque non valide");
-           }
-        } else {
-            System.out.println("🟦 Clic ignoré (aucune action possible)");
-        }
-});
 
+            } else if (selectedUnit != null && unit == null) {
+                System.out.println("🚶 Tentative de déplacement...");
+                controller.moveUnit(selectedUnit, this);
+                selectedUnit = null;
+
+            } else {
+                System.out.println("🟦 Clic ignoré");
+            }
+        });
     }
 
     private Color getColorForTerrain(TerrainType type) {
-        Color color;
         switch (type) {
-            case PLAINE:
-                color = Color.LIGHTGREEN;
-                break;
-            case FORET:
-                color = Color.DARKGREEN;
-                break;
-            case MONTAGNE:
-                color = Color.DIMGRAY;
-                break;
-            case COLLINE:
-                color = Color.SANDYBROWN;
-                break;
-            case FORTERESSE:
-                color = Color.DARKRED;
-                break;
-            default:
-                color = Color.GRAY;
+            case PLAINE: return Color.LIGHTGREEN;
+            case FORET: return Color.DARKGREEN;
+            case MONTAGNE: return Color.DIMGRAY;
+            case COLLINE: return Color.SANDYBROWN;
+            case FORTERESSE: return Color.DARKRED;
+            default: return Color.GRAY;
         }
-        return color;
     }
-
 
     public int getRow() {
         return row;
@@ -144,23 +127,38 @@ public class HexagonTile extends StackPane {
     }
 
     public void updateDisplay() {
+        if (unitLabel == null) return;
+
+        Player current = sharedGameState != null ? sharedGameState.getCurrentPlayer() : null;
+
+        // ✅ Correction ici : on rend la case visible si elle est dans la vision OU contient une unité du joueur
+        boolean visible = sharedGameState != null && (
+            sharedGameState.getBoard().isVisible(this) ||
+            (unit != null && current != null && unit.getOwner().equals(current))
+        );
+
+        Shape hexShape = (Shape) getChildren().get(0);
+
+        if (!visible) {
+            hexShape.setFill(Color.DARKGRAY);
+            unitLabel.setText("");
+            Tooltip.uninstall(this, null);
+            return;
+        }
+
+        hexShape.setFill(getColorForTerrain(this.terrainType));
+
         if (unit != null) {
-            String text = unit.getName() + " (" + unit.getType() + ")";
-            unitLabel.setText(text);
-
-            if (unit.getOwner().getName().equalsIgnoreCase("Ghassen")) {
-                unitLabel.setTextFill(Color.BLUE);
-            } else {
-                unitLabel.setTextFill(Color.CRIMSON);
-            }
-
-            Tooltip tooltip = new Tooltip("PV : " + unit.getHealth());
-            Tooltip.install(this, tooltip);
-
+            unitLabel.setText(unit.getName() + " (" + unit.getType() + ")");
+            unitLabel.setTextFill(current != null && unit.getOwner().equals(current) ? Color.BLUE : Color.CRIMSON);
+            Tooltip.install(this, new Tooltip("PV : " + unit.getHealth()));
         } else {
             unitLabel.setText("");
             Tooltip.uninstall(this, null);
-
         }
+    }
+
+    public static GameState getSharedGameState() {
+        return sharedGameState;
     }
 }

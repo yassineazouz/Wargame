@@ -9,3 +9,4 @@
 /home/ghassen/Bureau/Wargame/src/main/java/tn/isty/wargame/view/GameMenu.java
 /home/ghassen/Bureau/Wargame/src/main/java/tn/isty/wargame/model/HexagonTile.java
 /home/ghassen/Bureau/Wargame/src/main/java/tn/isty/wargame/controller/GameController.java
+/home/ghassen/Bureau/Wargame/src/main/java/tn/isty/wargame/util/SaveManager.java

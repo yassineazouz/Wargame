@@ -1,6 +1,9 @@
 package tn.isty.wargame.model;
 
-public class Unit {
+import java.io.Serializable;
+
+public class Unit implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final String name;
     private final String type;           // ex: "archer", "infanterie"
     private final int maxHealth;
@@ -13,7 +16,9 @@ public class Unit {
     private int currentMovement;
 
     private Player owner;                // le joueur à qui appartient l’unité
-    private HexagonTile position;            // case actuelle sur le plateau
+    private HexagonTile position;        // case actuelle sur le plateau
+
+    private boolean wasAttackedThisTurn = false; // ✅ Nouveau champ
 
     public Unit(String name, String type, int maxHealth, int attack, int defense, int maxMovement, int visionRange, Player owner) {
         this.name = name;
@@ -35,6 +40,7 @@ public class Unit {
     public int getAttack() { return attack; }
     public int getDefense() { return defense; }
     public int getCurrentMovement() { return currentMovement; }
+    public int getMaxMovement() { return maxMovement; }
     public int getVisionRange() { return visionRange; }
     public Player getOwner() { return owner; }
     public HexagonTile getPosition() { return position; }
@@ -44,34 +50,50 @@ public class Unit {
         this.position = position;
     }
 
-    //  Remise à zéro des points de déplacement au début du tour
+    // Remise à zéro des points de déplacement au début du tour
     public void resetMovement() {
         this.currentMovement = maxMovement;
+    }
+
+    // ✅ Marqueur : cette unité a été attaquée ce tour-ci
+    public void setWasAttackedThisTurn(boolean attacked) {
+        this.wasAttackedThisTurn = attacked;
+    }
+
+    public void setCurrentMovement(int value) {
+        this.currentMovement = value;
+    }
+
+    public boolean wasAttackedThisTurn() {
+        return this.wasAttackedThisTurn;
     }
 
     // Appliquer des dégâts
     public void receiveDamage(int amount) {
         this.currentHealth -= amount;
         if (this.currentHealth < 0) this.currentHealth = 0;
+        this.wasAttackedThisTurn = true; // ✅ important
     }
 
-    // Récupération des PV (10% des PV max)
+    // Récupération des PV (10% des PV max) seulement si pas attaqué ce tour
     public void recoverIfIdle() {
-        if (currentHealth < maxHealth) {
+        if (!wasAttackedThisTurn && currentHealth < maxHealth) {
             int recovered = (int) Math.ceil(maxHealth * 0.10);
             currentHealth = Math.min(maxHealth, currentHealth + recovered);
         }
+        this.wasAttackedThisTurn = false; // ✅ reset en fin de tour
     }
 
     public boolean isAlive() {
         return currentHealth > 0;
     }
+
     public String getName() {
         return name;
     }
+
     @Override
     public String toString() {
         return name + " [" + type + "] HP:" + currentHealth;
     }
-
 }

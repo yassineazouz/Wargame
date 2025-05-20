@@ -1,6 +1,8 @@
 package tn.isty.wargame.model;
 
-public enum TerrainType {
+import java.io.Serializable;
+
+public enum TerrainType implements Serializable{
     PLAINE,
     FORET,
     MONTAGNE,

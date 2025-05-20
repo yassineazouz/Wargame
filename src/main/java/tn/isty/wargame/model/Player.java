@@ -1,9 +1,10 @@
 package tn.isty.wargame.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Player {
+public class Player implements Serializable{
     private String name;
     private List<Unit> units;
     private boolean isAI;

@@ -1,9 +1,9 @@
+tn/isty/wargame/util/SaveManager.class
 tn/isty/wargame/model/HexagonTile$1.class
 tn/isty/wargame/Main.class
 tn/isty/wargame/view/GameMenu.class
 tn/isty/wargame/model/Plateau.class
 tn/isty/wargame/view/GameSetup.class
-tn/isty/wargame/model/GameState$1.class
 tn/isty/wargame/controller/GameController.class
 tn/isty/wargame/model/TerrainType.class
 tn/isty/wargame/model/Player.class

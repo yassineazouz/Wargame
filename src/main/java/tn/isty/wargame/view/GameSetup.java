@@ -1,136 +1,155 @@
 package tn.isty.wargame.view;
 
-import java.util.List;
-
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import tn.isty.wargame.controller.GameController;
-import tn.isty.wargame.model.GameState;
-import tn.isty.wargame.model.Plateau;
-import tn.isty.wargame.model.Player;
-import javafx.scene.paint.Color;
+import tn.isty.wargame.model.*;
+import tn.isty.wargame.util.SaveManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GameSetup {
 
     public static Scene createSetupScene(Stage stage) {
-        // Créer un label pour la sélection du nombre de joueurs
         Label label = new Label("Choisissez le nombre de joueurs");
         label.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
 
-        // Créer un layout pour les boutons de sélection du nombre de joueurs
         VBox playerSelectionBox = new VBox(20);
         playerSelectionBox.setAlignment(Pos.CENTER);
 
-        // Créer les boutons pour choisir le nombre de joueurs
-        Button[] playerButtons = new Button[4];  // Nombre maximum de joueurs
+        Button[] playerButtons = new Button[3];  // 2 à 4 joueurs
 
-        for (int i = 0; i < 4; i++) {
-            int playerCount = i + 2;  // Nombre de joueurs (2, 3, 4, 5)
-            playerButtons[i] = new Button(playerCount + " joueurs");
-            playerButtons[i].setStyle("-fx-font-size: 18px; -fx-background-color: #444; -fx-text-fill: white;");
-            playerButtons[i].setOnAction(e -> {
-                // Afficher les boutons pour choisir IA ou Humain
-                showPlayerChoice(stage, playerCount);
-            });
+        for (int i = 0; i < 3; i++) {
+            int playerCount = i + 2;
+            Button btn = new Button(playerCount + " joueurs");
+            btn.setStyle("-fx-font-size: 18px; -fx-background-color: #444; -fx-text-fill: white;");
+            btn.setOnAction(e -> showPlayerChoice(stage, playerCount));
+            playerButtons[i] = btn;
         }
 
-        playerSelectionBox.getChildren().addAll(label);
+        playerSelectionBox.getChildren().add(label);
         playerSelectionBox.getChildren().addAll(playerButtons);
 
-        // Fond d'écran étendu
-        BackgroundImage bgImage = new BackgroundImage(
-                new Image(GameMenu.class.getResource("/images/war_background.jpg").toExternalForm(),
-                        -1, -1,
-                        true, true),
-                BackgroundRepeat.NO_REPEAT,
-                BackgroundRepeat.NO_REPEAT,
-                BackgroundPosition.CENTER,
-                new BackgroundSize(100, 100, true, true, true, false)
-        );
-
         StackPane root = new StackPane();
-        root.setBackground(new Background(bgImage));  // Appliquer le fond d'écran
+        root.setBackground(getBackgroundImage());
         root.getChildren().add(playerSelectionBox);
 
-        // Créer la scène en plein écran
         Scene scene = new Scene(root);
-        stage.setMaximized(true);  // Maximiser la fenêtre
         stage.setScene(scene);
-
+        stage.setMaximized(true);
         stage.setFullScreen(true);
 
         return scene;
     }
 
     private static void showPlayerChoice(Stage stage, int numPlayers) {
-        VBox aiChoiceBox = new VBox(20);
-        aiChoiceBox.setAlignment(Pos.CENTER);
+        VBox layout = new VBox(20);
+        layout.setAlignment(Pos.CENTER);
 
-        Label label = new Label("Choisissez qui sera l'IA (max 1)");
+        Label label = new Label("Choisissez qui sera IA (max 1)");
         label.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
 
-        Button aiButton = new Button("Choisir IA");
-        aiButton.setStyle("-fx-font-size: 18px; -fx-background-color: #444; -fx-text-fill: white;");
-        aiButton.setOnAction(e -> {
-            // Pour l’instant, simple affichage
-            System.out.println("Choisir IA...");
-        });
+        List<Boolean> iaFlags = new ArrayList<>();
+        for (int i = 0; i < numPlayers; i++) {
+            iaFlags.add(false); // par défaut humain
+        }
 
-        Button humanButton = new Button("Choisir Humain");
-        humanButton.setStyle("-fx-font-size: 18px; -fx-background-color: #444; -fx-text-fill: white;");
-        humanButton.setOnAction(e -> {
-            // Pour l’instant, simple affichage
-            System.out.println("Choisir Humain...");
-        });
+        VBox buttonBox = new VBox(10);
+        for (int i = 0; i < numPlayers; i++) {
+            int index = i;
+            Button toggleBtn = new Button("Joueur " + (i + 1) + " : Humain");
+            toggleBtn.setStyle("-fx-font-size: 18px; -fx-background-color: #444; -fx-text-fill: white;");
+            toggleBtn.setOnAction(e -> {
+                boolean isIA = !iaFlags.get(index);
+                iaFlags.set(index, isIA);
+                toggleBtn.setText("Joueur " + (index + 1) + " : " + (isIA ? "IA" : "Humain"));
+            });
+            buttonBox.getChildren().add(toggleBtn);
+        }
 
         Button startGame = new Button("Commencer la partie");
         startGame.setStyle("-fx-font-size: 18px; -fx-background-color: #222; -fx-text-fill: white;");
-        startGame.setOnAction(ev -> {
-            // ⚠️ À améliorer plus tard : pour l’instant 1 humain + 1 IA
-            Player p1 = new Player("Joueur 1", false);
-            Player p2 = new Player("Joueur 2", true);
+        startGame.setOnAction(e -> {
+            List<Player> players = new ArrayList<>();
+            for (int i = 0; i < numPlayers; i++) {
+                players.add(new Player("Joueur " + (i + 1), iaFlags.get(i)));
+            }
 
-            Plateau plateau = new Plateau(5, 5); // Taille par défaut
-            GameState gameState = new GameState(List.of(p1, p2), plateau);
+            Plateau plateau = new Plateau(10, 10);
+            GameState gameState = new GameState(players, plateau);
+            gameState.initializeGame();
+            HexagonTile.setSharedGameState(gameState);
+
+            if (players.size() >= 2) {
+                Player p1 = players.get(0);
+                Player p2 = players.get(1);
+
+                Unit archer = new Unit("A", "archer", 20, 5, 2, 3, 3, p1);
+                Unit tank = new Unit("T", "tank", 30, 4, 6, 2, 2, p2);
+
+                p1.addUnit(archer);
+                p2.addUnit(tank);
+
+                plateau.placerUnite(2, 2, archer);
+                plateau.placerUnite(5, 5, tank);
+            }
+
             GameController controller = new GameController(gameState);
 
-            GameBoard board = new GameBoard(); // Tu peux plus tard passer gameState ici
-            Scene gameScene = new Scene(board, 1280, 800);
+            // 🔘 Bouton Fin de tour
+            Button endTurnButton = new Button("Fin de tour");
+            endTurnButton.setLayoutX(20);
+            endTurnButton.setLayoutY(20);
+            endTurnButton.setStyle("-fx-font-size: 16px;");
+            endTurnButton.setOnAction(ev -> controller.endTurn());
 
+            // 💾 Bouton Sauvegarder
+            Button saveButton = new Button("Sauvegarder");
+            saveButton.setLayoutX(140);
+            saveButton.setLayoutY(20);
+            saveButton.setStyle("-fx-font-size: 16px;");
+            saveButton.setOnAction(ev -> SaveManager.sauvegarder(gameState, "savegame.ser"));
+
+            Button returnButton = new Button("Retour Menu");
+            returnButton.setLayoutX(280);
+            returnButton.setLayoutY(20);
+            returnButton.setStyle("-fx-font-size: 16px;");
+            returnButton.setOnAction(ev -> GameMenu.createMenuScene(stage));
+
+            plateau.getChildren().addAll(endTurnButton, saveButton, returnButton);
+
+            Scene gameScene = new Scene(plateau, 1280, 800);
             stage.setScene(gameScene);
-            stage.setTitle("Wargame - Plateau");
+            stage.setTitle("Wargame - Partie");
         });
 
-        aiChoiceBox.getChildren().addAll(label, aiButton, humanButton, startGame);
+        layout.getChildren().addAll(label, buttonBox, startGame);
 
-        // Fond d'écran
-        BackgroundImage bgImage = new BackgroundImage(
+        StackPane root = new StackPane();
+        root.setBackground(getBackgroundImage());
+        root.getChildren().add(layout);
+
+        Scene scene = new Scene(root);
+        stage.setScene(scene);
+        stage.setMaximized(true);
+        stage.setFullScreen(true);
+    }
+
+    private static Background getBackgroundImage() {
+        return new Background(new BackgroundImage(
                 new Image(GameMenu.class.getResource("/images/war_background.jpg").toExternalForm(),
-                        -1, -1,
-                        true, true),
+                        -1, -1, true, true),
                 BackgroundRepeat.NO_REPEAT,
                 BackgroundRepeat.NO_REPEAT,
                 BackgroundPosition.CENTER,
                 new BackgroundSize(100, 100, true, true, true, false)
-        );
-
-        StackPane root = new StackPane();
-        root.setBackground(new Background(bgImage));
-        root.getChildren().add(aiChoiceBox);
-
-        Scene scene = new Scene(root);
-        stage.setMaximized(true);
-        stage.setScene(scene);
-        stage.setFullScreen(true);
+        ));
     }
-
 }
-
-
-
-
