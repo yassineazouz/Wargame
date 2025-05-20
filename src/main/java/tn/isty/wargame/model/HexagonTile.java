@@ -14,34 +14,15 @@ import tn.isty.wargame.controller.GameController;
 public class HexagonTile extends StackPane implements Serializable {
     private static final long serialVersionUID = 1L;
     private static final double SIZE = 40;
+    private static GameState sharedGameState = null;
+
     private TerrainType terrainType;
     private Unit unit;
     private int row;
     private int col;
 
-    // Ne pas sérialiser les éléments JavaFX UI
     private transient Label unitLabel = new Label();
-
     private static Unit selectedUnit = null;
-    private static GameState sharedGameState = null;
-
-    public static void setSharedGameState(GameState gameState) {
-        sharedGameState = gameState;
-    }
-
-    public Unit getUnit() {
-        return unit;
-    }
-
-    public void setUnit(Unit unit) {
-        this.unit = unit;
-        if (unit != null) unit.setPosition(this);
-        updateDisplay();
-    }
-
-    public TerrainType getTerrainType() {
-        return terrainType;
-    }
 
     public HexagonTile(TerrainType type, int row, int col) {
         this.terrainType = type;
@@ -104,26 +85,9 @@ public class HexagonTile extends StackPane implements Serializable {
             case MONTAGNE: return Color.DIMGRAY;
             case COLLINE: return Color.SANDYBROWN;
             case FORTERESSE: return Color.DARKRED;
+            case EAU: return Color.BLUE;
             default: return Color.GRAY;
         }
-    }
-
-    public int getRow() {
-        return row;
-    }
-
-    public int getCol() {
-        return col;
-    }
-
-    public void playAttackAnimation() {
-        Shape hexShape = (Shape) getChildren().get(0);
-        FillTransition ft = new FillTransition(Duration.millis(300), hexShape);
-        ft.setFromValue(Color.RED);
-        ft.setToValue(getColorForTerrain(this.terrainType));
-        ft.setCycleCount(4);
-        ft.setAutoReverse(true);
-        ft.play();
     }
 
     public void updateDisplay() {
@@ -131,7 +95,6 @@ public class HexagonTile extends StackPane implements Serializable {
 
         Player current = sharedGameState != null ? sharedGameState.getCurrentPlayer() : null;
 
-        // ✅ Correction ici : on rend la case visible si elle est dans la vision OU contient une unité du joueur
         boolean visible = sharedGameState != null && (
             sharedGameState.getBoard().isVisible(this) ||
             (unit != null && current != null && unit.getOwner().equals(current))
@@ -151,11 +114,50 @@ public class HexagonTile extends StackPane implements Serializable {
         if (unit != null) {
             unitLabel.setText(unit.getName() + " (" + unit.getType() + ")");
             unitLabel.setTextFill(current != null && unit.getOwner().equals(current) ? Color.BLUE : Color.CRIMSON);
-            Tooltip.install(this, new Tooltip("PV : " + unit.getHealth()));
+            Tooltip.install(this, new Tooltip("PV : " + unit.getHealth() +
+                    "\nTerrain : " + terrainType +
+                    "\nCoût déplacement : " + terrainType.getMoveCost()));
         } else {
             unitLabel.setText("");
-            Tooltip.uninstall(this, null);
+            Tooltip.install(this, new Tooltip("Terrain : " + terrainType +
+                    "\nCoût déplacement : " + terrainType.getMoveCost()));
         }
+    }
+
+    public void playAttackAnimation() {
+        Shape hexShape = (Shape) getChildren().get(0);
+        FillTransition ft = new FillTransition(Duration.millis(300), hexShape);
+        ft.setFromValue(Color.RED);
+        ft.setToValue(getColorForTerrain(this.terrainType));
+        ft.setCycleCount(4);
+        ft.setAutoReverse(true);
+        ft.play();
+    }
+
+    public TerrainType getTerrainType() {
+        return terrainType;
+    }
+
+    public Unit getUnit() {
+        return unit;
+    }
+
+    public void setUnit(Unit unit) {
+        this.unit = unit;
+        if (unit != null) unit.setPosition(this);
+        updateDisplay();
+    }
+
+    public int getRow() {
+        return row;
+    }
+
+    public int getCol() {
+        return col;
+    }
+
+    public static void setSharedGameState(GameState gameState) {
+        sharedGameState = gameState;
     }
 
     public static GameState getSharedGameState() {

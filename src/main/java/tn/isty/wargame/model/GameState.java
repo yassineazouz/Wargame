@@ -21,7 +21,7 @@ public class GameState implements Serializable {
         for (Player player : players) {
             for (Unit unit : player.getUnits()) {
                 unit.resetMovement();
-                unit.setWasAttackedThisTurn(false); // Initialiser à false au début
+                unit.setWasAttackedThisTurn(false);
             }
         }
         board.refreshVisibility();
@@ -37,7 +37,6 @@ public class GameState implements Serializable {
                     System.out.println("🔧 " + unit.getName() + " récupère des PV (repos)");
                 }
             }
-            // Réinitialiser pour le tour suivant
             unit.setWasAttackedThisTurn(false);
             unit.resetMovement();
         }
@@ -72,28 +71,34 @@ public class GameState implements Serializable {
         return board;
     }
 
+    // ✅ Mise à jour : utilise le vrai coût de déplacement (pas juste la distance)
     public boolean canMove(Unit unit, HexagonTile destination) {
-        return unit.isAlive() && board.isReachable(unit.getPosition(), destination, unit.getCurrentMovement());
-    }
-    public void moveUnit(Unit unit, HexagonTile destination) {
-        int distance = calculerDistanceHex(unit.getPosition(), destination);
+        if (!unit.isAlive() || destination == null) return false;
 
-        // Supprimer l'unité de l'ancienne case
+        int cost = board.calculateMovementCostPath(unit.getPosition(), destination);
+        return cost <= unit.getCurrentMovement();
+    }
+
+    // ✅ Mise à jour : décrémente selon le coût du terrain
+    public void moveUnit(Unit unit, HexagonTile destination) {
+        if (unit == null || destination == null) return;
+
+        int cost = board.calculateMovementCostPath(unit.getPosition(), destination);
+        if (cost > unit.getCurrentMovement()) {
+            System.out.println("❌ Déplacement refusé (coût trop élevé)");
+            return;
+        }
+
         HexagonTile from = unit.getPosition();
         if (from != null) from.setUnit(null);
 
-        // Mettre à jour la position
         unit.setPosition(destination);
         destination.setUnit(unit);
+        unit.setCurrentMovement(unit.getCurrentMovement() - cost);
 
-        // Décrémenter les points de mouvement
-        unit.setCurrentMovement(unit.getCurrentMovement() - distance);
-
-        // 🔄 Mise à jour visuelle immédiate
         destination.updateDisplay();
         if (from != null) from.updateDisplay();
     }
-
 
     public boolean canAttack(Unit attacker, Unit defender) {
         return attacker.isAlive()
@@ -104,18 +109,18 @@ public class GameState implements Serializable {
 
     public void resolveCombat(Unit attacker, Unit defender) {
         int baseDamage = attacker.getAttack() - defender.getDefense();
-        int terrainModifier = 0; // à implémenter si besoin
-        int randomFactor = (int) (Math.random() * 5) - 2; // [-2, +2]
+        int terrainModifier = 0; // à implémenter plus tard
+        int randomFactor = (int) (Math.random() * 5) - 2;
 
         int totalDamage = Math.max(1, baseDamage + terrainModifier + randomFactor);
         defender.receiveDamage(totalDamage);
-        defender.setWasAttackedThisTurn(true); // ✅ Marque l'unité comme attaquée ce tour
+        defender.setWasAttackedThisTurn(true);
+
         System.out.println("💥 Dégâts infligés : " + totalDamage +
-            " (base: " + baseDamage + ", terrain: " + terrainModifier + ", hasard: " + randomFactor + ")");
+                " (base: " + baseDamage + ", terrain: " + terrainModifier + ", hasard: " + randomFactor + ")");
         System.out.println("❤️ PV restants de " + defender.getName() + " : " + defender.getHealth());
     }
 
-        // 🔁 MODIFICATION de calculerDistanceHex :
     public int calculerDistanceHex(HexagonTile a, HexagonTile b) {
         int colA = a.getCol();
         int rowA = a.getRow() - (a.getCol() - (a.getCol() & 1)) / 2;
@@ -127,11 +132,9 @@ public class GameState implements Serializable {
         int dy = rowA - rowB;
 
         return (Math.abs(dx) + Math.abs(dy) + Math.abs(dx + dy)) / 2;
-        }
-
+    }
 
     public void setBoard(Plateau board) {
-    this.board = board;
-}
-
+        this.board = board;
+    }
 }
