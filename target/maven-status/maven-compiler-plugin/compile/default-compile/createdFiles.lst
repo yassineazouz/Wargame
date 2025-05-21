@@ -11,5 +11,4 @@ tn/isty/wargame/model/TerrainType.class
 tn/isty/wargame/model/Player.class
 tn/isty/wargame/model/HexagonTile.class
 tn/isty/wargame/model/GameState.class
-tn/isty/wargame/view/GameBoard.class
 tn/isty/wargame/model/Unit.class

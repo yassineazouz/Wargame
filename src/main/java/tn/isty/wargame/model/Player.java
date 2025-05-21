@@ -32,7 +32,7 @@ public class Player implements Serializable{
     }
 
     public boolean hasUnitsAlive() {
-        return units.stream().anyMatch(unit -> unit.getHealth() > 0);
+        return units.stream().anyMatch(unit -> unit.getCurrentHealth() > 0);
     }
 
     public void resetUnitsMovement() {

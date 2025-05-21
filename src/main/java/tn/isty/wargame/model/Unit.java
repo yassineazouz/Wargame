@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 public class Unit implements Serializable {
     private static final long serialVersionUID = 1L;
+
     private final String name;
     private final String type;           // ex: "archer", "infanterie"
     private final int maxHealth;
@@ -18,7 +19,8 @@ public class Unit implements Serializable {
     private Player owner;                // le joueur à qui appartient l’unité
     private HexagonTile position;        // case actuelle sur le plateau
 
-    private boolean wasAttackedThisTurn = false; // ✅ Nouveau champ
+    private boolean wasAttackedThisTurn = false;
+    private boolean hasActed = false;
 
     public Unit(String name, String type, int maxHealth, int attack, int defense, int maxMovement, int visionRange, Player owner) {
         this.name = name;
@@ -35,8 +37,9 @@ public class Unit implements Serializable {
     }
 
     // Getters
+    public String getName() { return name; }
     public String getType() { return type; }
-    public int getHealth() { return currentHealth; }
+    public int getCurrentHealth() { return currentHealth; }
     public int getAttack() { return attack; }
     public int getDefense() { return defense; }
     public int getCurrentMovement() { return currentMovement; }
@@ -50,50 +53,77 @@ public class Unit implements Serializable {
         this.position = position;
     }
 
-    // Remise à zéro des points de déplacement au début du tour
+    public void setOwner(Player owner) {
+        this.owner = owner;
+    }
+
+    public void setWasAttackedThisTurn(boolean wasAttackedThisTurn) {
+        this.wasAttackedThisTurn = wasAttackedThisTurn;
+    }
+    public void setCurrentHealth(int currentHealth) {
+        this.currentHealth = currentHealth;
+    }
+    public void setCurrentMovement(int currentMovement) {
+        this.currentMovement = currentMovement;
+    }
     public void resetMovement() {
         this.currentMovement = maxMovement;
     }
+    
 
-    // ✅ Marqueur : cette unité a été attaquée ce tour-ci
-    public void setWasAttackedThisTurn(boolean attacked) {
-        this.wasAttackedThisTurn = attacked;
+
+    // Méthode pour déplacer l’unité en consommant du mouvement
+    public boolean moveTo(HexagonTile newPosition, int movementCost) {
+        if (movementCost <= currentMovement && movementCost > 0) {
+            this.position = newPosition;
+            this.currentMovement -= movementCost;
+            this.hasActed = true;
+            return true;
+        }
+        return false; // mouvement impossible
     }
 
-    public void setCurrentMovement(int value) {
-        this.currentMovement = value;
+    // Réinitialiser les points de mouvement et flags en début de tour
+    public void startTurn() {
+        this.currentMovement = maxMovement;
+        this.wasAttackedThisTurn = false;
+        this.hasActed = false;
     }
 
     public boolean wasAttackedThisTurn() {
-        return this.wasAttackedThisTurn;
+        return wasAttackedThisTurn;
+    }
+
+    public boolean hasActed() {
+        return hasActed;
+    }
+
+    public void setHasActed(boolean hasActed) {
+        this.hasActed = hasActed;
     }
 
     // Appliquer des dégâts
     public void receiveDamage(int amount) {
+        if (amount < 0) return; // pas de soins ici
         this.currentHealth -= amount;
         if (this.currentHealth < 0) this.currentHealth = 0;
-        this.wasAttackedThisTurn = true; // ✅ important
+        this.wasAttackedThisTurn = true;
     }
 
-    // Récupération des PV (10% des PV max) seulement si pas attaqué ce tour
-    public void recoverIfIdle() {
-        if (!wasAttackedThisTurn && currentHealth < maxHealth) {
+    // Récupérer des PV (10% maxHealth) si l’unité n’a pas été attaquée ce tour
+    public void recoverHealthIfIdle() {
+        if (!wasAttackedThisTurn && currentHealth > 0 && currentHealth < maxHealth) {
             int recovered = (int) Math.ceil(maxHealth * 0.10);
             currentHealth = Math.min(maxHealth, currentHealth + recovered);
         }
-        this.wasAttackedThisTurn = false; // ✅ reset en fin de tour
     }
 
     public boolean isAlive() {
         return currentHealth > 0;
     }
 
-    public String getName() {
-        return name;
-    }
-
     @Override
     public String toString() {
-        return name + " [" + type + "] HP:" + currentHealth;
+        return name + " [" + type + "] HP:" + currentHealth + " MV:" + currentMovement;
     }
 }

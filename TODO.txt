@@ -1,0 +1,121 @@
+
+TODO – Améliorations finales du projet Wargame
+
+ORDRE CHRONOLOGIQUE À SUIVRE POUR FINALISER LE JEU
+
+──────────────────────────────────────────────
+1. CORRIGER LA STRUCTURE DES TESTS UNITAIRES
+──────────────────────────────────────────────
+→ Objectif : rendre les tests fonctionnels via Maven
+→ Modifier : 
+  - `pom.xml` → ajouter JUnit 5 comme dépendance
+  - `AppTest.java` → utiliser `org.junit.jupiter.api.Test`(je pense que j'ai déja fait ça mais il faut vérifier quand même (ghassen)"
+
+──────────────────────────────────────────────
+2. AJOUTER L’AIDE POUR LE JOUEUR
+──────────────────────────────────────────────
+→ Objectif : inclure un bouton "Aide" avec instructions
+→ Modifier : 
+  - `GameMenu.java` → ajouter un bouton “Aide”
+  - Créer une fenêtre `Alert` JavaFX avec un texte explicatif des règles.
+
+──────────────────────────────────────────────
+3. AMÉLIORER L’UI (AFFICHAGE JEU)
+──────────────────────────────────────────────
+→ Objectif : rendre le plateau plus visuel et immersif
+→ Modifier :
+  - `HexagonTile.java` :
+    - Afficher icône/image des unités selon leur type
+    - Couleurs plus marquées pour les terrains
+    - Animation d’attaque visible (ex. clignotement rouge + icône combat)
+  - `Plateau.java` :
+    - Centrer le plateau
+    - Adapter la taille selon la fenêtre
+  - `GameSetup.java` → s’assurer que l’UI est bien visible selon le terrain
+
+──────────────────────────────────────────────
+4. AMÉLIORER LES BOUTONS
+──────────────────────────────────────────────
+→ Objectif : rendre les boutons plus esthétiques
+→ Modifier :
+  - `GameMenu.java`, `GameSetup.java` :
+    - Ajouter des icônes ou images de fond
+    - Arrondir les bords (CSS)
+    - Couleurs plus claires et effets au survol
+
+──────────────────────────────────────────────
+5. FIXER L’AFFICHAGE DES PERSONNAGES AU DÉBUT
+──────────────────────────────────────────────
+→ Objectif : tous les personnages doivent apparaître au début
+→ Modifier :
+  - `GameSetup.java` → méthode `placerUniteDansZoneValide`
+    - Ajouter une tentative multiple de placement
+    - Ajouter message d’erreur **in-game** si trop d’unités et pas de place dispo
+    - Ne pas utiliser `System.err.println` mais afficher dans l’interface
+
+──────────────────────────────────────────────
+6. RENDRE LE SPAWN 100% FIABLE + ALÉATOIRE
+──────────────────────────────────────────────
+→ Objectif : spawn aléatoire sauf sur l’eau/infranchissable
+→ Modifier :
+  - `GameSetup.java` :
+    - remplacer la logique fixe par un placement aléatoire contrôlé
+    - générer une liste de tuiles valides par joueur (sans eau)
+    - tirer aléatoirement dedans
+    - en cas d’échec : afficher une boîte de dialogue d’erreur et retourner au menu
+
+──────────────────────────────────────────────
+7. ACTIVER LES ATTAQUES À DISTANCE
+──────────────────────────────────────────────
+→ Objectif : permettre aux archers de tirer à plus de 1 case
+→ Modifier :
+  - `GameState.java` :
+    - `canAttack()` → inclure portée dynamique selon `unit.getType()` ou `visionRange`
+  - `GameController.java` :
+    - IA : ajouter logique de tir à distance si possible
+  - `Unit.java` :
+    - Ajouter attribut `range` (ou utiliser `visionRange` temporairement)
+
+──────────────────────────────────────────────
+8. FIXER LE SYSTÈME DE SAUVEGARDE
+──────────────────────────────────────────────
+→ Objectif : sérialisation/désérialisation complète + interface stable
+→ Modifier :
+  - `SaveManager.java`
+  - `GameMenu.java` → revoir la restauration correcte du plateau
+    - Corriger les `null` dans `sharedGameState`
+    - Recréer les boutons d’action après chargement
+    - Restaurer l’état des unités et de l’UI
+
+──────────────────────────────────────────────
+9. INTEGRER LE TERMINAL DANS L’INTERFACE
+──────────────────────────────────────────────
+→ Objectif : ne plus utiliser la console du terminal
+→ Modifier :
+  - Créer une `VBox` ou `TextArea` dans `Plateau.java` ou `GameMenu.java`
+  - Remplacer tous les `System.out.println()` par des appels à une méthode `logMessage(String)`
+  - Ajouter un `ScrollPane` en bas ou à droite pour afficher les logs de jeu (combat, déplacement, etc.)
+
+──────────────────────────────────────────────
+10. JAVADOC SUR CLASSES PRINCIPALES
+──────────────────────────────────────────────
+→ Objectif : respecter la consigne de documentation
+→ Modifier :
+  - `GameController.java`
+  - `GameState.java`
+  - `HexagonTile.java`
+  - `Unit.java`, `Player.java`
+
+──────────────────────────────────────────────
+
+──────────────────────────────────────────────
+11. (OPTIONNEL) CRÉER LE `.jar` EXÉCUTABLE
+──────────────────────────────────────────────
+→ Objectif : livrer un exécutable `.jar`
+→ Modifier :
+  - `pom.xml` → ajouter plugin `maven-jar-plugin`
+  - S’assurer que la commande suivante fonctionne :
+    - `mvn clean install`
+    - `java -jar target/Wargame1-1.0-SNAPSHOT.jar`
+
+──────────────────────────────────────────────
