@@ -5,5 +5,6 @@ public enum TerrainType {
     FORET,
     MONTAGNE,
     COLLINE,
-    FORTERESSE
+    FORTERESSE,
+    EAU
 }

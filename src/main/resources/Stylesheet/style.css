@@ -1,0 +1,101 @@
+/* Fichier : style.css */
+
+/* Style de base */
+#root {
+    -fx-background-image: url("/images/war_background.jpg"); /* Chemin relatif depuis resources */
+    -fx-background-size: cover;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+    -fx-font-family: "Arial";
+    -fx-font-size: 16px;
+}
+
+/* Style des boutons génériques */
+.button {
+    -fx-font-size: 16px;
+    -fx-background-color: #5e9a72;
+    -fx-text-fill: white;
+    -fx-padding: 10 20;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #3e6b56;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 2);
+}
+
+/* Conteneurs VBox */
+.vbox {
+    -fx-spacing: 10px;
+    -fx-alignment: center;
+    -fx-padding: 20px;
+    -fx-background-color: rgba(255, 255, 255, 0.8);
+    -fx-background-radius: 10px;
+}
+
+/* Styles des boîtes de dialogue */
+.dialog-pane {
+    -fx-background-color: #f4f4f4;
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: #5e9a72;
+}
+
+.dialog-pane .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.dialog-pane .content {
+    -fx-font-size: 14px;
+    -fx-padding: 10px;
+}
+
+/* Boutons spéciaux pour le menu */
+.menu-button {
+    -fx-background-color: #5e9a72;
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-padding: 10 20;
+    -fx-min-width: 200px;
+}
+
+.menu-button:hover {
+    -fx-background-color: #3e6b56;
+}
+
+/* Style des ToggleButton pour la sélection IA */
+.toggle-button:selected {
+    -fx-background-color: #27ae60;
+    -fx-text-fill: white;
+}
+
+/* Style des labels d'information */
+.info-label {
+    -fx-text-fill: #2c3e50;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+/* Ajoutez ces styles à style.css */
+.config-pane {
+    -fx-background-color: rgba(255, 255, 255, 0.9);
+    -fx-background-radius: 15;
+    -fx-padding: 20;
+}
+
+.toggle-button {
+    -fx-min-width: 150px;
+    -fx-background-color: #5e9a72;
+    -fx-text-fill: white;
+}
+
+.toggle-button:selected {
+    -fx-background-color: #27ae60;
+}
+
+.alert {
+    -fx-font-size: 14px;
+}

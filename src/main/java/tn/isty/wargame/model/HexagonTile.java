@@ -1,34 +1,35 @@
 package tn.isty.wargame.model;
 
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 
-public class HexagonTile extends StackPane {
-    private static final double SIZE = 40;
-    private TerrainType terrainType;
+public class HexagonTile extends Polygon {
 
-    public HexagonTile(TerrainType type) {
-        this.terrainType = type;
+    public static final double SIZE = 40;
+    private static final double SQRT3 = Math.sqrt(3);
 
-        // Création de l'hexagone
-        Polygon hex = new Polygon();
-        for (int i = 0; i < 6; i++) {
-            double angle = Math.toRadians(60 * i - 30);
-            double x = SIZE * Math.cos(angle);
-            double y = SIZE * Math.sin(angle);
-            hex.getPoints().addAll(x, y);
-        }
+    private final TerrainType terrainType;
 
-        hex.setStroke(Color.BLACK);
-        hex.setFill(getColorForTerrain(type)); // Utilise une couleur spécifique
+    public HexagonTile(double x, double y, TerrainType terrainType) {
+        // Définir les points de l'hexagone
+        this.getPoints().addAll(
+                x + SIZE, y,
+                x + SIZE / 2, y + SQRT3 * SIZE / 2,
+                x - SIZE / 2, y + SQRT3 * SIZE / 2,
+                x - SIZE, y,
+                x - SIZE / 2, y - SQRT3 * SIZE / 2,
+                x + SIZE / 2, y - SQRT3 * SIZE / 2
+        );
 
-        this.setPrefSize(SIZE * 2, SIZE * 2);
-        this.getChildren().add(hex);
+        this.terrainType = terrainType;
+
+        // Appliquer la couleur
+        this.setFill(getColorForTerrain());
+        this.setStroke(Color.BLACK);
     }
 
-    private Color getColorForTerrain(TerrainType type) {
-        switch (type) {
+    private Color getColorForTerrain() {
+        switch (terrainType) {
             case PLAINE:
                 return Color.LIGHTGREEN;
             case FORET:
@@ -39,8 +40,12 @@ public class HexagonTile extends StackPane {
                 return Color.SANDYBROWN;
             case FORTERESSE:
                 return Color.DARKRED;
+            case EAU:
+                return Color.DODGERBLUE;
             default:
                 return Color.GRAY;
         }
     }
+
+
 }
